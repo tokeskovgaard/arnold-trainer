@@ -30,6 +30,7 @@
 
     <a class="read-more" href="https://www.bodybuilding.com/content/the-full-body-workout-for-extreme-fitness.html">Læs
       mere</a>
+    <button v-on:click="crash()">Smash that Exception!</button>
   </div>
 
 </template>
@@ -120,6 +121,10 @@
 
             startTraining: function () {
                 this.trainingLog.push({exerciseIndex: 0, set: 1, timeStarted: new Date()})
+            },
+
+            crash: function () {
+                throw Error("BAAAG");
             },
 
             nextPlease: function () {
