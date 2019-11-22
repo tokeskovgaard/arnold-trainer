@@ -1,0 +1,66 @@
+[
+  {
+    "name": "Bent-over barbell rows",
+    "group": "Back",
+    "units": "kg",
+    "step": 2.5,
+    "amount": 40,
+    "link": "https://www.bodybuilding.com/exercises/bent-over-barbell-row"
+  },
+  {
+    "name": "Bench presses",
+    "group": "Chest",
+    "units": "kg",
+    "step": 2.5,
+    "amount": 60,
+    "link": "https://www.bodybuilding.com/exercises/barbell-bench-press-medium-grip"
+  },
+  {
+    "name": "Standing barbell curls",
+    "group": "Biceps",
+    "units": "kg",
+    "step": 2.5,
+    "amount": 40,
+    "link": "https://www.bodybuilding.com/exercises/barbell-curl"
+  },
+  {
+    "name": "Lying dumbbell Extensions",
+    "group": "Triceps",
+    "units": "kg",
+    "step": 2.5,
+    "amount": 20,
+    "link": "https://www.bodybuilding.com/exercises/lying-dumbbell-tricep-extension"
+  },
+  {
+    "name": "Seated Dumbbell presses",
+    "group": "Shoulders",
+    "link": "https://www.bodybuilding.com/exercises/seated-dumbbell-press",
+    "units": "kg (per dumbbell)",
+    "amount": 20,
+    "step": 2.5
+  },
+  {
+    "name": "Standing calf single raises",
+    "group": "Calves",
+    "units": "kg",
+    "step": 2.5,
+    "amount": 20,
+    "link": "https://www.bodybuilding.com/exercises/standing-calf-raises"
+  },
+  {
+    "name": "Squats",
+    "group": "Legs",
+    "units": "kg",
+    "step": 5,
+    "amount": 70,
+    "link": "https://www.bodybuilding.com/exercises/barbell-squat"
+  },
+  {
+    "name": "Dragon crunch",
+    "group": "Abs",
+    "units": "langsom sænkning",
+    "step": 1,
+    "amount": 8,
+    "link": "https://www.youtube.com/watch?v=-PDylT4TNcU"
+  }
+]
