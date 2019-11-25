@@ -1,37 +1,50 @@
+import {Difficulty} from "~/types";
+import {Difficulty} from "~/types";
+import {Difficulty} from "~/types";
+import {Difficulty} from "~/types";
 <template>
   <div class="container">
     <div v-if="exercises.length === 0">{{status}}</div>
     <template v-else>
-      <h1 class="header">&#129409;&#128170; Dagens træning &#128293;&#128293;</h1>
-      <p>Hver øvelse tages i 3 sæt med 8 reps af samme vægt</p>
+      <h1 class="header">&#129409;&#128170; The Arnold'cise - Get T R A I N I N G ! &#128293;&#128293;</h1>
+      <p>Every exercise is done in the sets with 8 reps in each set. The weight is fixed.</p>
 
       <div class="exercise-container">
-        <button v-if="!current()" v-on:click="nopesNewData()" class="new-workout">Hell no! Ny plan</button>
-        <div class="exercise-row" v-for="item in exercises">
+        <button v-if="!workoutStarted" v-on:click="nopesNewData()" class="new-workout">Hell no!
+          Ny plan
+        </button>
+        <div class="exercise-row" v-for="item in exercises" v-bind:key="item.order">
           <div class="order">{{item.order}}.</div>
-          <span class="group">{{item.group}}</span>
+          <span class="group">{{item.exercise.group}}</span>
           <div class="exercise">{{item.exercise.name}}</div>
           <a class="video" v-if="item.exercise.link" :href="item.exercise.link">&#128250;</a>
           <div class="training">
             <input type="number" size="1" min="0" :step="item.exercise.step" :value="item.exercise.amount"><span>{{item.exercise.units}}</span>
           </div>
+          <div v-if="workoutStarted">
+            <select v-model="item.difficulty">
+              <option disabled value="0">Please select one</option>
+              <option v-for="difficulty in difficulties">{{difficulty}}</option>
+            </select>
+          </div>
         </div>
       </div>
-
-      <template v-if="!current()">
-        <button v-on:click="startTraining()">Hell yes! Crunch TIME</button>
-      </template>
-      <!--      <button v-on:click="saveData()">Gem</button>-->
-    </template>
-    <template v-if="current()">
-      <h2>{{current()}}</h2>
-      <button v-on:click="nextPlease()">Næste</button>
+      <button v-if="!workoutStarted" v-on:click="startWorkout()">Hell yes! Crunch TIME</button>
+      <button v-if="workoutStarted" v-on:click="saveWorkout()">Save workout</button>
+      <button v-if="workoutSaved" v-on:click="nopesNewData()">Get new program</button>
     </template>
 
-    <a class="read-more" href="https://www.bodybuilding.com/content/the-full-body-workout-for-extreme-fitness.html">Læs
-      mere</a>
-    <button v-on:click="crash()">Smash that Exception!</button>
+    <a class="read-more" href="https://www.bodybuilding.com/content/the-full-body-workout-for-extreme-fitness.html">
+      Læs mere</a>
+
+    <div class="workouts" v-if="workouts.length>0">
+      <h3>Previous workouts</h3>
+      <div v-for="workout in workouts">
+        {{workout.date}}
+      </div>
+    </div>
   </div>
+
 
 </template>
 
@@ -48,36 +61,35 @@
     import shuffle from 'lodash/shuffle'
     import Vue from 'vue'
     import * as exercises from '~/static/exercises.json'
+    import {Difficulty, Exercise, Workout, WorkoutItem} from "~/types";
 
     const StorageKey = "TrainingDataStuff";
-
-    interface Exercise {
-        group: string,
-        name: string
-        link: string
-        units: string
-        step: number
-        amount: number
-    }
-
-    interface TrainingItem {
-        exercise: Exercise,
-        order: number
-    }
-
 
     export default Vue.extend({
 
         data() {
-            const exercises: TrainingItem[] = [];
-            const currentExercise: TrainingItem | null = null;
-            const trainingLog: { exerciseIndex: number, set: number, timeStarted: Date, timeEnded?: Date }[] = [];
-            const status = "loading"
+            const workouts: Workout[] = [];
+            if (process.client) {
+                // SHOULD NOT BLOCK INITIAL RENDER
+                const data = window.localStorage.getItem("Workouts")
+                if (data) {
+                    console.log("Workouts loaded", {Workouts: data})
+                    workouts.push(...JSON.parse(data));
+                }
+            }
+
+            const exercises: WorkoutItem[] = [];
+            const status = "loading";
+            let workoutStarted: boolean = false;
+            let workoutSaved: boolean = false;
+            let difficulties = [Difficulty.veryEasy, Difficulty.easy, Difficulty.medium, Difficulty.hard, Difficulty.veryDifficult];
             return {
                 status,
                 exercises,
-                trainingLog,
-                currentExercise
+                workouts,
+                difficulties,
+                workoutStarted,
+                workoutSaved
             }
         },
 
@@ -95,78 +107,60 @@
                 console.error(error);
             })
         },
-        //
-        // asyncData: async function ({params}): Promise<string> {
-        //     const exerciseItems = await fetch("/exercises.json").then(response => response.json());
-        //     return {exerciseItems: exerciseItems}
-        //
-        // },
+
 
         methods: {
-            // Should be a computed function.. But dont work atm with the current typescript setup,
-            current: function () {
-                let trainingLogElement = this.trainingLog[this.trainingLog.length - 1];
-                if (!trainingLogElement)
-                    return undefined;
-                let exercise = this.exercises.find(e => e.order == trainingLogElement.exerciseIndex + 1);
-                return {...exercise, ...trainingLogElement};
-            },
 
+            selectDifficulty: function (workoutItem: WorkoutItem, difficulty: Difficulty) {
+
+                let item = this.exercises.find(e => e.exercise.group === workoutItem.exercise.group);
+                console.log("Setting difficulty", {workoutItem, difficulty, item})
+                if (item) {
+                    item.difficulty = difficulty;
+                }
+            },
             nopesNewData: function () {
+                this.workoutStarted = false;
+                this.workoutSaved = false;
                 this.createData().then(exercises => {
                     this.exercises = exercises;
                     this.saveData(exercises);
                 })
             },
 
-            startTraining: function () {
-                this.trainingLog.push({exerciseIndex: 0, set: 1, timeStarted: new Date()})
+            startWorkout: function () {
+                this.workoutStarted = true
             },
 
-            crash: function () {
-                throw Error("BAAAG");
-            },
-
-            nextPlease: function () {
-                const currentExerciseLog = this.trainingLog[this.trainingLog.length - 1];
-                if (!currentExerciseLog) {
-                    throw new Error("No active training found");
-                }
-
-                if (currentExerciseLog.set < 3) {
-                    this.trainingLog.push({
-                        exerciseIndex: currentExerciseLog.exerciseIndex,
-                        set: currentExerciseLog.set + 1,
-                        timeStarted: new Date()
-                    });
-                    return;
-                }
-                if (currentExerciseLog.exerciseIndex < 7) {
-                    this.trainingLog.push({
-                        exerciseIndex: currentExerciseLog.exerciseIndex + 1,
-                        set: 1,
-                        timeStarted: new Date()
-                    });
-                    return;
+            saveWorkout: function () {
+                let workout = {
+                    date: new Date(),
+                    exercises: this.exercises.map(e => ({exercise: e.exercise, difficulty: 1}))
+                } as Workout;
+                this.workouts.push(workout);
+                if (process.client) {
+                    window.localStorage.setItem("Workouts", JSON.stringify(this.workouts))
                 }
             },
 
-            createData: async function (): Promise<TrainingItem[]> {
+
+            createData: async function (): Promise<WorkoutItem[]> {
                 if (process.client) {
                     const items = await fetch("/exercises.json").then(response => response.json());
                     console.log(items);
                     let index = 0;
                     const exercises = shuffle(items).map((exercise: Exercise) => ({
-                        group: exercise.group,
                         exercise: exercise,
-                        order: ++index
-                    }));
+                        order: ++index,
+                        difficulty: undefined
+                    } as WorkoutItem));
                     return exercises;
                 }
                 return exercises;
             },
 
-            loadData: async function (): Promise<TrainingItem[] | null> {
+
+            loadData: async function (): Promise<WorkoutItem[] | null> {
                 if (process.client) {
                     const storageData = window.localStorage.getItem(StorageKey)
                     if (storageData) {
@@ -176,7 +170,7 @@
                 return null;
             },
 
-            saveData: function (exercises: TrainingItem[]) {
+            saveData: function (exercises: WorkoutItem[]) {
                 if (process.client)
                     window.localStorage.setItem(StorageKey, JSON.stringify(exercises))
             }
@@ -230,6 +224,10 @@
     border-radius: 6px;
     box-shadow: var(--box-shadow);
     position: relative;
+  }
+
+  input.selected {
+    color: green;
   }
 
   .exercise-row {
