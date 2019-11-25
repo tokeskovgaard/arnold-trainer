@@ -13,7 +13,8 @@ import {Difficulty} from "~/types";
         <button v-if="!workoutStarted" v-on:click="nopesNewData()" class="new-workout">Hell no!
           Ny plan
         </button>
-        <div class="exercise-row" v-for="workoutItem in exercises" v-bind:key="workoutItem.order" v-bind:class="{active: currentWorkoutItem.order == workoutItem.order, inActive: currentWorkoutItem.order < workoutItem.order}">
+        <div class="exercise-row" v-for="workoutItem in exercises" v-bind:key="workoutItem.order"
+             v-bind:class="{active: currentWorkoutItem.order == workoutItem.order, 'in-active': currentWorkoutItem.order < workoutItem.order}">
           <div class="order">{{workoutItem.order}}.</div>
           <span class="group">{{workoutItem.exercise.group}}</span>
           <div class="exercise">{{workoutItem.exercise.name}}</div>
@@ -24,6 +25,7 @@ import {Difficulty} from "~/types";
           </div>
           <template v-if="workoutStarted">
             <div class="difficulty">
+              <div>Difficulty</div>
               <template v-for="difficulty in difficulties">
                 <input type="radio" :id="difficulty" :value="difficulty" v-model="workoutItem.difficulty"
                        :class="'difficulty-'+difficulty">
@@ -239,13 +241,33 @@ import {Difficulty} from "~/types";
   .exercise-row {
     display: grid;
     /*padding: 2rem;*/
-    grid-template-areas: 'order group exercise video training';
+    grid-template-areas: 'order group group group'       'order video exercise training' 'order difficulty difficulty difficulty' ;
     grid-column-gap: 5px;
     align-items: center;
     justify-content: start;
+    margin-bottom: 1rem;
+    justify-items: start;
 
 
-    .order { grid-area: order; }
+    .order { grid-area: order;
+      color: white;
+      font-weight: bold;
+      background: grey;
+      width: 40px;
+      height: 40px;
+      align-items: center;
+      display: flex;
+      justify-content: center;
+    margin-right: 10px;
+      align-self: start;
+    }
+    &.active .order {
+      background:#3b8070;
+    }
+
+    &.in-active .order {
+      background:lightgray;
+    }
 
     .group { grid-area: group; }
 
@@ -254,10 +276,12 @@ import {Difficulty} from "~/types";
     .video { grid-area: video; }
 
     .training { grid-area: training; }
+    .difficulty { grid-area: difficulty; }
 
     .exercise { line-height: 1rem; }
 
     .group {
+      width: auto;
       font-size: .6rem;
       background: #3b8070;
       color: white;
