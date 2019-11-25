@@ -117,6 +117,7 @@
                     this.exercises = exercises;
                     this.saveData(exercises);
                 })
+                throw new Error("Oops")
             },
 
             startTraining: function () {
