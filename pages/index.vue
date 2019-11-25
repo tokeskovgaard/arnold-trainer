@@ -13,20 +13,23 @@ import {Difficulty} from "~/types";
         <button v-if="!workoutStarted" v-on:click="nopesNewData()" class="new-workout">Hell no!
           Ny plan
         </button>
-        <div class="exercise-row" v-for="item in exercises" v-bind:key="item.order">
-          <div class="order">{{item.order}}.</div>
-          <span class="group">{{item.exercise.group}}</span>
-          <div class="exercise">{{item.exercise.name}}</div>
-          <a class="video" v-if="item.exercise.link" :href="item.exercise.link">&#128250;</a>
+        <div class="exercise-row" v-for="workoutItem in exercises" v-bind:key="workoutItem.order" v-bind:class="{active: currentWorkoutItem.order == workoutItem.order, inActive: currentWorkoutItem.order < workoutItem.order}">
+          <div class="order">{{workoutItem.order}}.</div>
+          <span class="group">{{workoutItem.exercise.group}}</span>
+          <div class="exercise">{{workoutItem.exercise.name}}</div>
+          <a class="video" v-if="workoutItem.exercise.link" :href="workoutItem.exercise.link">&#128250;</a>
           <div class="training">
-            <input type="number" size="1" min="0" :step="item.exercise.step" :value="item.exercise.amount"><span>{{item.exercise.units}}</span>
+            <input type="number" size="1" min="0" :step="workoutItem.exercise.step"
+                   v-model="workoutItem.exercise.amount"><span>{{workoutItem.exercise.units}}</span>
           </div>
-          <div v-if="workoutStarted">
-            <select v-model="item.difficulty">
-              <option disabled value="0">Please select one</option>
-              <option v-for="difficulty in difficulties">{{difficulty}}</option>
-            </select>
-          </div>
+          <template v-if="workoutStarted">
+            <div class="difficulty">
+              <template v-for="difficulty in difficulties">
+                <input type="radio" :id="difficulty" :value="difficulty" v-model="workoutItem.difficulty"
+                       :class="'difficulty-'+difficulty">
+              </template>
+            </div>
+          </template>
         </div>
       </div>
       <button v-if="!workoutStarted" v-on:click="startWorkout()">Hell yes! Crunch TIME</button>
@@ -54,7 +57,6 @@ import {Difficulty} from "~/types";
 ## Split training log and personal trainer
 ## Add timer function
 ## Voice control of next, start, stop, more weight
-
 
 */
     import Logo from '~/components/Logo.vue'
@@ -93,6 +95,14 @@ import {Difficulty} from "~/types";
             }
         },
 
+        computed: {
+            // need annotation
+            currentWorkoutItem(): WorkoutItem | undefined {
+                let item = this.exercises.find(e => e.difficulty == null);
+                if (item) return item;
+                return this.exercises[this.exercises.length - 1];
+            }
+        },
         created: function () {
             this.loadData().then(exercises => {
                 if (exercises)
@@ -111,14 +121,6 @@ import {Difficulty} from "~/types";
 
         methods: {
 
-            selectDifficulty: function (workoutItem: WorkoutItem, difficulty: Difficulty) {
-
-                let item = this.exercises.find(e => e.exercise.group === workoutItem.exercise.group);
-                console.log("Setting difficulty", {workoutItem, difficulty, item})
-                if (item) {
-                    item.difficulty = difficulty;
-                }
-            },
             nopesNewData: function () {
                 this.workoutStarted = false;
                 this.workoutSaved = false;
@@ -205,6 +207,10 @@ import {Difficulty} from "~/types";
     align-items: center;
     text-align: center;
     background: var(--background-color);
+  }
+
+  .difficulty-1 {
+    background: darkred;
   }
 
   input {
