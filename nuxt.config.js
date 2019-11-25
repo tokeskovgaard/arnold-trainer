@@ -48,7 +48,7 @@ export default {
   sentry: {
     dsn: 'https://989fe762680c44baa2be630fbd5adfec@sentry.io/1830276', // Enter your project's DSN here
     publishRelease: true,
-    config: {}, // Additional config
+    config: {release: "1.0.0"}, // Additional config
   },
   /* Build configuration */
   build: {
