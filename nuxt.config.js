@@ -44,7 +44,7 @@ export default {
   ],
   /* See https://axios.nuxtjs.org/options */
   axios: {},
-  googleAnalytics: {id: 'UA-107675518-4'},
+  googleAnalytics: {id: 'UA-107675518-4', dev: false},
   sentry: {
     dsn: 'https://989fe762680c44baa2be630fbd5adfec@sentry.io/1830276', // Enter your project's DSN here
     publishRelease: true,
@@ -54,7 +54,17 @@ export default {
   build: {
     /* You can extend webpack config here */
     extend(config, ctx) {
-      config.devtool = 'eval-source-map'
+      config.devtool = 'eval-source-map';
+      config.output.devtoolModuleFilenameTemplate = info => {
+        var $filename = 'sources://' + info.resourcePath;
+        if (info.resourcePath.match(/\.vue$/) && !info.query.match(/type=script/)) {
+          $filename = 'webpack-generated:///' + info.resourcePath + '?' + info.hash;
+        } else {
+          // console.log(info);
+        }
+        return $filename;
+      };
+      config.output.devtoolFallbackModuleFilenameTemplate = 'webpack:///[resource-path]?[hash]';
     }
   }
 }
