@@ -9,6 +9,7 @@ export interface Exercise {
 
 export interface WorkoutItem {
   order: number
+  setsTaken: number;
   exercise: Exercise,
   difficulty?: Difficulty
 }

@@ -24,18 +24,27 @@ import {Difficulty} from "~/types";
                    v-model="workoutItem.exercise.amount"><span>{{workoutItem.exercise.units}}</span>
           </div>
           <template v-if="workoutStarted">
-            <div class="difficulty">
-              <div>Difficulty</div>
-              <template v-for="difficulty in difficulties">
-                <input type="radio" :id="difficulty" :value="difficulty" v-model="workoutItem.difficulty"
-                       :class="'difficulty-'+difficulty">
-              </template>
+            <div class="registration">
+              <div>
+                <div>Set: {{workoutItem.setsTaken}}/3</div>
+                <button v-if="workoutItem.setsTaken < 3" v-on:click="finishSet(workoutItem)">Set finished - Give me a break</button>
+              </div>
+              <div flex>
+                <span>Difficulty</span>
+                <template v-for="difficulty in difficulties">
+                  <label :for="workoutItem.order+'-'+difficulty"
+                         :class="'difficulty-label difficulty-'+difficulty + (workoutItem.difficulty === difficulty? ' selected': '')"></label>
+                  <input type="radio" :id="workoutItem.order+'-'+difficulty" :value="difficulty"
+                         v-model="workoutItem.difficulty"
+                         class="difficulty-input">
+                </template>
+              </div>
             </div>
           </template>
         </div>
       </div>
       <button v-if="!workoutStarted" v-on:click="startWorkout()">Hell yes! Crunch TIME</button>
-      <button v-if="workoutStarted" v-on:click="saveWorkout()">Save workout</button>
+      <button v-if="workoutStarted && workoutCanBeSaved" v-on:click="saveWorkout()">Save workout</button>
       <button v-if="workoutSaved" v-on:click="nopesNewData()">Get new program</button>
     </template>
 
@@ -103,6 +112,10 @@ import {Difficulty} from "~/types";
                 let item = this.exercises.find(e => e.difficulty == null);
                 if (item) return item;
                 return this.exercises[this.exercises.length - 1];
+            },
+
+            workoutCanBeSaved(): boolean {
+                return this.exercises.filter(e => e.difficulty == null).length === 0;
             }
         },
         created: function () {
@@ -112,6 +125,7 @@ import {Difficulty} from "~/types";
                 return this.createData();
             }).then(exercises => {
                 this.saveData(exercises)
+                exercises.forEach(e => e.setsTaken = 0);
                 this.exercises = exercises;
                 this.status = "loaded"
             }).catch(error => {
@@ -122,7 +136,9 @@ import {Difficulty} from "~/types";
 
 
         methods: {
-
+            finishSet: function (workoutItem: WorkoutItem) {
+                workoutItem.setsTaken++;
+            },
             nopesNewData: function () {
                 this.workoutStarted = false;
                 this.workoutSaved = false;
@@ -211,8 +227,30 @@ import {Difficulty} from "~/types";
     background: var(--background-color);
   }
 
-  .difficulty-1 {
-    background: darkred;
+  .difficulty-label {
+    height: 30px;
+    width: 30px;
+    display: inline-block;
+    background: grey;
+    filter: alpha(.2);
+
+    &.selected {
+      filter: alpha(1);
+    }
+
+    &.difficulty-1 { background: forestgreen;}
+
+    &.difficulty-2 { background: yellowgreen;}
+
+    &.difficulty-3 { background: gold;}
+
+    &.difficulty-4 { background: orange;}
+
+    &.difficulty-5 { background: darkred;}
+  }
+
+  .difficulty-input {
+    display: none;
   }
 
   input {
@@ -241,7 +279,7 @@ import {Difficulty} from "~/types";
   .exercise-row {
     display: grid;
     /*padding: 2rem;*/
-    grid-template-areas: 'order group group group'       'order video exercise training' 'order difficulty difficulty difficulty' ;
+    grid-template-areas: 'order group group group' 'order video exercise training' 'order registration registration registration';
     grid-column-gap: 5px;
     align-items: center;
     justify-content: start;
@@ -258,15 +296,16 @@ import {Difficulty} from "~/types";
       align-items: center;
       display: flex;
       justify-content: center;
-    margin-right: 10px;
+      margin-right: 10px;
       align-self: start;
     }
+
     &.active .order {
-      background:#3b8070;
+      background: #3b8070;
     }
 
     &.in-active .order {
-      background:lightgray;
+      background: lightgray;
     }
 
     .group { grid-area: group; }
@@ -276,7 +315,8 @@ import {Difficulty} from "~/types";
     .video { grid-area: video; }
 
     .training { grid-area: training; }
-    .difficulty { grid-area: difficulty; }
+
+    .registration { grid-area: registration; }
 
     .exercise { line-height: 1rem; }
 
