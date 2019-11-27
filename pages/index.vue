@@ -52,13 +52,14 @@
 
     <a class="read-more" href="https://www.bodybuilding.com/content/the-full-body-workout-for-extreme-fitness.html">
       Læs mere</a>
-
-    <div class="workouts" v-if="workouts.length>0">
-      <h3>Previous workouts</h3>
-      <div v-for="workout in workouts">
-        {{workout.date}}
+    <client-only>
+      <div class="workouts" v-if="workouts.length>0">
+        <h3>Previous workouts</h3>
+        <div v-for="workout in workouts">
+          {{workout.date}}
+        </div>
       </div>
-    </div>
+    </client-only>
   </div>
 
 
@@ -150,7 +151,7 @@
 
 
         methods: {
-            difficulties: function(): Difficulty[] {
+            difficulties: function (): Difficulty[] {
                 let difficulties = [Difficulty.veryEasy, Difficulty.easy, Difficulty.medium, Difficulty.hard, Difficulty.veryDifficult];
                 return difficulties
             },
