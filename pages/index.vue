@@ -1,11 +1,8 @@
-import {Difficulty} from "~/types";
-import {Difficulty} from "~/types";
-import {Difficulty} from "~/types";
-import {Difficulty} from "~/types";
 <template>
   <div class="container">
     <div v-if="exercises.length === 0">{{status}}</div>
     <template v-else>
+      <h1 class="header" v-if="secondsToCrunchTime">CRUNCH TIME IN: {{secondsToCrunchTime | prettyPrintSeconds}}</h1>
       <h1 class="header">&#129409;&#128170; The Arnold'cise - Get T R A I N I N G ! &#128293;&#128293;</h1>
       <p>Every exercise is done in the sets with 8 reps in each set. The weight is fixed.</p>
 
@@ -23,13 +20,20 @@ import {Difficulty} from "~/types";
             <input type="number" size="1" min="0" :step="workoutItem.exercise.step"
                    v-model="workoutItem.exercise.amount"><span>{{workoutItem.exercise.units}}</span>
           </div>
+
+
           <template v-if="workoutStarted">
             <div class="registration">
               <div>
                 <div>Set: {{workoutItem.setsTaken}}/3</div>
-                <button v-if="workoutItem.setsTaken < 3" v-on:click="finishSet(workoutItem)">Set finished - Give me a break</button>
+                <template v-if="currentWorkoutItem.order == workoutItem.order">
+
+                  <button v-if="workoutItem.setsTaken < 3" v-on:click="finishSet(workoutItem)">
+                    Set finished - Give me a break
+                  </button>
+                </template>
               </div>
-              <div flex>
+              <div flex v-if="workoutItem.setsTaken === 3 ">
                 <span>Difficulty</span>
                 <template v-for="difficulty in difficulties">
                   <label :for="workoutItem.order+'-'+difficulty"
@@ -78,8 +82,19 @@ import {Difficulty} from "~/types";
 
     const StorageKey = "TrainingDataStuff";
 
+    let interval: any = null;
     export default Vue.extend({
-
+        filters: {
+            prettyPrintSeconds: function (seconds: number) {
+                if (!seconds) return '00:00';
+                const minutes = Math.floor(seconds / 60);
+                let secondsLeft = (seconds - (minutes * 60)) + "";
+                if (secondsLeft.length === 1) {
+                    secondsLeft = "0" + secondsLeft;
+                }
+                return minutes + ":" + secondsLeft;
+            }
+        },
         data() {
             const workouts: Workout[] = [];
             if (process.client) {
@@ -95,6 +110,7 @@ import {Difficulty} from "~/types";
             const status = "loading";
             let workoutStarted: boolean = false;
             let workoutSaved: boolean = false;
+            let secondsToCrunchTime: number = 0;
             let difficulties = [Difficulty.veryEasy, Difficulty.easy, Difficulty.medium, Difficulty.hard, Difficulty.veryDifficult];
             return {
                 status,
@@ -102,7 +118,9 @@ import {Difficulty} from "~/types";
                 workouts,
                 difficulties,
                 workoutStarted,
-                workoutSaved
+                workoutSaved,
+                secondsToCrunchTime,
+                testDate: new Date()
             }
         },
 
@@ -138,6 +156,14 @@ import {Difficulty} from "~/types";
         methods: {
             finishSet: function (workoutItem: WorkoutItem) {
                 workoutItem.setsTaken++;
+                this.secondsToCrunchTime = 120;
+                if (interval) clearInterval(interval);
+                interval = setInterval(() => {
+                    this.secondsToCrunchTime = this.secondsToCrunchTime - 1;
+                    if (this.secondsToCrunchTime === 0) {
+                        clearInterval(interval);
+                    }
+                }, 1000)
             },
             nopesNewData: function () {
                 this.workoutStarted = false;
@@ -172,7 +198,8 @@ import {Difficulty} from "~/types";
                     const exercises = shuffle(items).map((exercise: Exercise) => ({
                         exercise: exercise,
                         order: ++index,
-                        difficulty: undefined
+                        difficulty: undefined,
+                        setsTaken: 0
                     } as WorkoutItem));
                     return exercises;
                 }
