@@ -16,26 +16,24 @@
           <span class="group">{{workoutItem.exercise.group}}</span>
           <div class="exercise">{{workoutItem.exercise.name}}</div>
           <a class="video" v-if="workoutItem.exercise.link" :href="workoutItem.exercise.link">&#128250;</a>
-          <div class="training">
-            <input type="number" size="1" min="0" :step="workoutItem.exercise.step"
-                   v-model="workoutItem.exercise.amount"><span>{{workoutItem.exercise.units}}</span>
-          </div>
+          <div class="training"> - {{workoutItem.exercise.amount}} {{workoutItem.exercise.units}}</div>
 
 
           <template v-if="workoutStarted">
             <div class="registration">
-              <div>
-                <div>Set: {{workoutItem.setsTaken}}/3</div>
-                <template v-if="currentWorkoutItem.order == workoutItem.order">
-
-                  <button v-if="workoutItem.setsTaken < 3" v-on:click="finishSet(workoutItem)">
-                    Set finished - Give me a break
-                  </button>
-                </template>
+              <div v-if="currentWorkoutItem.order == workoutItem.order">
+                <div>Amount: <input type="number" size="1" min="0" :step="workoutItem.exercise.step"
+                                    v-model="workoutItem.exercise.amount"><span>{{workoutItem.exercise.units}}</span>
+                </div>
+                <div v-if="workoutItem.setsTaken<2">Set: {{workoutItem.setsTaken + 1}} out of 3 -
+                  <button v-if="workoutItem.setsTaken < 3" v-on:click="finishSet(workoutItem)">Set done</button>
+                </div>
+                <div v-else>Set: last set -
+                  <button v-if="workoutItem.setsTaken < 3" v-on:click="finishSet(workoutItem)">Exercise DONE!</button>
+                </div>
               </div>
-              <div flex v-if="workoutItem.setsTaken === 3 ">
-                <span>Difficulty</span>
-                <template v-for="difficulty in difficulties">
+              <div v-if="currentWorkoutItem.order >= workoutItem.order">Difficulty
+                <template v-for="difficulty in difficulties()">
                   <label :for="workoutItem.order+'-'+difficulty"
                          :class="'difficulty-label difficulty-'+difficulty + (workoutItem.difficulty === difficulty? ' selected': '')"></label>
                   <input type="radio" :id="workoutItem.order+'-'+difficulty" :value="difficulty"
@@ -111,12 +109,10 @@
             let workoutStarted: boolean = false;
             let workoutSaved: boolean = false;
             let secondsToCrunchTime: number = 0;
-            let difficulties = [Difficulty.veryEasy, Difficulty.easy, Difficulty.medium, Difficulty.hard, Difficulty.veryDifficult];
             return {
                 status,
                 exercises,
                 workouts,
-                difficulties,
                 workoutStarted,
                 workoutSaved,
                 secondsToCrunchTime,
@@ -127,7 +123,7 @@
         computed: {
             // need annotation
             currentWorkoutItem(): WorkoutItem | undefined {
-                let item = this.exercises.find(e => e.difficulty == null);
+                let item = this.exercises.find(e => e.difficulty == null || e.setsTaken < 3);
                 if (item) return item;
                 return this.exercises[this.exercises.length - 1];
             },
@@ -154,6 +150,10 @@
 
 
         methods: {
+            difficulties: function(): Difficulty[] {
+                let difficulties = [Difficulty.veryEasy, Difficulty.easy, Difficulty.medium, Difficulty.hard, Difficulty.veryDifficult];
+                return difficulties
+            },
             finishSet: function (workoutItem: WorkoutItem) {
                 workoutItem.setsTaken++;
                 this.secondsToCrunchTime = 120;
@@ -255,8 +255,8 @@
   }
 
   .difficulty-label {
-    height: 30px;
-    width: 30px;
+    height: 20px;
+    width: 20px;
     display: inline-block;
     background: grey;
     filter: alpha(.2);
@@ -282,9 +282,10 @@
 
   input {
     text-align: right;
-    width: 40px;
     border: none;
     border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+    margin: 0 10px;
+    width: 50px;
   }
 
   p,
@@ -343,7 +344,8 @@
 
     .training { grid-area: training; }
 
-    .registration { grid-area: registration; }
+    .registration { grid-area: registration;
+      text-align: left; }
 
     .exercise { line-height: 1rem; }
 
