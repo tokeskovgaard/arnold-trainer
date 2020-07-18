@@ -14,7 +14,7 @@
     "@nuxt/typescript-runtime": "^0.2.4",
     "@nuxtjs/axios": "^5.3.6",
     "@nuxtjs/sentry": "^3.0.1",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "nuxt": "^2.0.0"
   },
   "devDependencies": {
